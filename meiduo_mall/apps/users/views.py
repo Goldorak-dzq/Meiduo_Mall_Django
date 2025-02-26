@@ -70,5 +70,16 @@ class RegisterView(View):
         # User.objects.create(username=username, password=password, mobile=mobile) # 不加密
         # 密码加密
         user = User.objects.create_user(username=username, password=password, mobile=mobile)
+        from django.contrib.auth import login
+        login(request, user)
         #     5. 返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
+"""
+如果需求是注册成功后即表示用户认证通过，那么此时可以在注册成功后实现状态保持 (注册成功即已登录)
+如果需求是注册成功后不表示用户认证通过，那么此时不用在注册成功后实现状态保持 (注册成功，单独登录)
+实现状态保持主要有两种方式:
+    客户端存储信息用Cookie
+    服务器存储信息用Session
+"""
+
