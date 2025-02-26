@@ -14,9 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
+# from xml.etree.ElementInclude import include
 
+from django.contrib import admin
+from django.urls import include, path
 from django.http import HttpResponse
 
 def log(request):
@@ -32,5 +33,7 @@ def log(request):
     return HttpResponse('log')
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('log/', log),
+    # 导入users子应用的路由
+    path('', include('apps.users.urls')),
+
 ]
