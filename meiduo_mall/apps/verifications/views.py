@@ -28,7 +28,7 @@ class ImageCodeView(View):
         from libs.captcha.captcha import captcha
         # text 是图片验证码的内容 例如： xyzz
         # image 是图片二进制
-        text, image = captcha.generate_captcha()
+        text, image = captcha.generate_captcha() # 花费一天解决引用问题，原因竟然是captcha拓展包的问题
 
 
         # 3. 通过redis把图片验证码保存

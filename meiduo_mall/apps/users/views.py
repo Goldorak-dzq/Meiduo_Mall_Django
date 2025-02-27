@@ -1,7 +1,3 @@
-# from Scripts.odfimgimport import image
-# from django.shortcuts import render
-# from django.views import View
-
 # Create your views here.
 
 """
