@@ -88,12 +88,33 @@ class SmsCodeView(View):
         # 4.生成短信验证码
         from random import randint
         sms_code = '%04d'%randint(0, 9999)
-        # 5.保存短信验证码
-        redis_cli.setex(mobile, 300, sms_code)
-        # 添加一个发送标记,有效期60s
-        redis_cli.setex('send_flag_%s' %mobile, 60, 1)
+        # 管道 3步
+        # 1. 新建一个管道
+        pipeline = redis_cli.pipeline()
+        # 2. 管道收集指令
+        pipeline.setex(mobile, 300, sms_code)
+        pipeline.setex('send_flag_%s' % mobile, 60, 1)
+        # 3. 管道执行指令
+        pipeline.execute()
+
+        # # 5.保存短信验证码
+        # redis_cli.setex(mobile, 300, sms_code)
+        # # 添加一个发送标记,有效期60s
+        # redis_cli.setex('send_flag_%s' %mobile, 60, 1)
         # 6.发送短信验证码
-        from libs.yuntongxun.sms import CCP
-        CCP().send_template_sms(mobile, [sms_code, 5], 1)
+        # from libs.yuntongxun.sms import CCP
+        # CCP().send_template_sms(mobile, [sms_code, 5], 1)
+        # 异步:celery
+        from celery_tasks.sms.tasks import celery_send_sms_code
+        celery_send_sms_code.delay(mobile, sms_code)
         # 7.返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
+"""
+生产者
+消费者
+队列 （中间人）
+Celery
+
+
+"""
