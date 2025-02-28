@@ -136,4 +136,27 @@ class LoginView(View):
             request.session.set_expiry(0)
 
         # 6.返回响应
-        return JsonResponse({'code': 0, 'errmsg': 'ok'})
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
+        # 首页显示用户信息，添加cookie信息
+        response.set_cookie('username', user.username)
+        return response
+
+"""
+退出登录
+
+前端:
+    当用户名点击退出按钮之后，前端应该发送一个axios delete请求
+后端:
+    请求:   接受数据，验证数据
+    业务逻辑: 退出
+    响应: 返回JSON数据 
+
+"""
+from django.contrib.auth import logout
+class LogoutView(View):
+    def delete(self, request):
+        logout(request)
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
+        # 删除cookie信息
+        response.delete_cookie('username')
+        return response
