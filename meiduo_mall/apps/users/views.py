@@ -79,3 +79,56 @@ class RegisterView(View):
     服务器存储信息用Session
 """
 
+"""  
+登录
+
+前端:
+    当用户名把用户名和密码输入完成之后，点击登录按钮，这时候前端应该发送一个axios请求
+后端:
+    请求:   接受数据，验证数据
+    业务逻辑: 验证用户名和密码是否正确 session
+    响应: 返回JSON数据 0 成功 400 失败
+步骤:
+    1.接受数据
+    2.验证数据
+    3.验证用户名和密码是否正确
+    4.session
+    5.判断是否记住登录
+    6.返回响应
+"""
+
+class LoginView(View):
+    def post(self, request):
+        # 1.接受数据
+        # body_bytes = request.body
+        # body_str = body_bytes.decode()
+        # body_dict = json.loads(body_str)
+        data = json.loads(request.body.decode())
+        username = data.get('username')
+        password = data.get('password')
+        remembered = data.get('remembered')
+        # 2.验证数据
+        if not all([username, password]):
+            return JsonResponse({'code': 400, 'errmsg': '参数不全'})
+
+        # 3.验证用户名和密码是否正确
+        # User.objects.get(username=username)
+        from django.contrib.auth import authenticate, login
+        # authenticate传递用户名和密码
+        # 如果正确，则返回User信息
+        # 如果不正确，则返回None
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return JsonResponse({'code': 400, 'errmsg': '账号或密码错误'})
+        # 4.session
+        login(request, user)
+        # 5.判断是否记住登录
+        if remembered:
+            # 记住登录 2周
+            request.session.set_expiry(None)
+        else:
+            # 不记住密码，浏览器关闭session过期
+            request.session.set_expiry(0)
+
+        # 6.返回响应
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
