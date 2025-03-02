@@ -178,3 +178,26 @@ class OauthQQView(View):
         7.返回响应
 
 """
+################itsdangerous#################
+# itsdangerous数据加密
+# 1.导入itsdangerous
+# TimedJSONWebSignatureSerializer不仅可以对数据加密还可以设置时效
+from meiduo_mall.settings import SECRET_KEY
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+# 2.创建类的实例对象
+# secret_key 密钥
+# expires_in = None 数据的过期时间（秒）
+s = Serializer(secret_key=SECRET_KEY, expires_in=3600)
+
+# 3.加密数据
+token = s.dumps({'openid': "12345657890"})
+# b'eyJhbGciOiJIUzUxMiIsImlhdCI6MTc0MDkxNDk3NCwiZXhwIjoxNzQwOTE4NTc0fQ.
+# eyJvcGVuaWQiOiIxMjM0NTY1Nzg5MCJ9.kIHvCAklPYwI3GhUmGGVF2lRMRej5eZubol
+# VCa3NqSPwyuZ3WUItMyar3cKtKxhuk2h1AGPOdRCn55BH059WqQ'
+
+# itsdangerous数据解密
+from meiduo_mall.settings import SECRET_KEY
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+s = Serializer(secret_key=SECRET_KEY, expires_in=3600)
+s.loads(token)
+# {'openid': '12345657890'}
