@@ -243,7 +243,11 @@ class EmailView(LoginRequiredJsonMixin, View):
         from_email = '美多商城<dzq1780315381@163.com>'       # 发件人
         recipient_list = ['1780315381@qq.com', 'dzq1780315381@163.com']  # 收件人列表
         # 邮件的内容如果是html 使用html_message
-        html_message = "点击按钮激活<a href='http://www.baidu.com'>激活</a>"
+        # 4.1 对a标签的内容进行加密处理
+        from apps.users.utils import generic_email_verify_token
+        token = generic_email_verify_token(request.user.id)
+        # 4.2 组织我们的激活邮件
+        html_message = "点击按钮激活<a href='http://www.baidu.com/?token=%s'>激活</a>"%token
         send_mail(
             subject=subject,
             message=message,
