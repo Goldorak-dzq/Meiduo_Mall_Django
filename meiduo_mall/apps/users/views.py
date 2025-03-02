@@ -14,6 +14,8 @@
 """
 import re
 import json
+from email import message
+
 from django.views import View
 from apps.users.models import User
 from django.http import JsonResponse
@@ -185,6 +187,10 @@ LoginRequiredMixin 未登录的用户 会返回重定向 重定向并不是JSON�
 from utils.views import LoginRequiredJsonMixin
 class CenterView(LoginRequiredJsonMixin, View):
     def get(self, request):
+        # request.user 已经登录的用户信息
+        # request.user 来源于中间件
+        # 系统会判断，如果是登录用户，可以获取登录用户对应的模型实例数据
+        # 如果不是登录用户，request.user = AnonymousUser() 匿名用户
         info_data = {
             'username': request.user.username,
             'email': request.user.email,
@@ -194,3 +200,56 @@ class CenterView(LoginRequiredJsonMixin, View):
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'info_data': info_data})
 
 
+"""
+1.保存邮件地址 2.发送一封激活邮件 3.用户激活邮件
+
+前端:
+    当用户名输入邮箱之后，前端应该发送一个axios请求
+后端:
+    请求:   接受数据，获取数据
+    业务逻辑: 保存邮件地址，发送一封激活邮件
+    响应: 返回JSON数据
+    路由: PUT
+    步骤:
+        1.接受请求
+        2.保存数据
+        3.保存邮箱地址
+        4.发送一封激活邮件
+        5.返回响应
+
+"""
+
+class EmailView(LoginRequiredJsonMixin, View):
+    def put(self, request):
+        # 1.接受请求
+        data = json.loads(request.body.decode())
+        # 2.保存数据
+        email = data.get('email')
+        # 验证数据
+        if not email:
+            return JsonResponse({'code': 400, 'errmsg': '缺少email参数'})
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return JsonResponse({'code': 400, 'errmsg': 'email格式不正确'})
+
+        # 3.保存邮箱地址
+        user = request.user
+        user.email = email
+        user.save()
+
+        # 4.发送一封激活邮件
+        from django.core.mail import send_mail
+        subject = '美多商城激活邮件'  # 主题
+        message = ""      # 邮件内容
+        from_email = '美多商城<dzq1780315381@163.com>'       # 发件人
+        recipient_list = ['1780315381@qq.com', 'dzq1780315381@163.com']  # 收件人列表
+        # 邮件的内容如果是html 使用html_message
+        html_message = "点击按钮激活<a href='http://www.baidu.com'>激活</a>"
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            recipient_list=recipient_list,
+            html_message=html_message,
+        )
+        # 5.返回响应
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
