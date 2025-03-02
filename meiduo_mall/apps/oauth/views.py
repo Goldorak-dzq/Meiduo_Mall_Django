@@ -47,7 +47,7 @@ QQ登录
 from django.views import View
 from QQLoginTool.QQtool import OAuthQQ
 from meiduo_mall import settings
-from django.http import JsonResponse
+
 class QQLoginURLView(View):
     def get(self, request):
         # client_id = None,  appid
@@ -74,7 +74,7 @@ class QQLoginURLView(View):
             如果没有绑定，需要绑定
             如果有绑定，直接登录                            
     响应: 返回跳转链接
-    {'code':0, 'qq_login_url': "http://XXX"}
+    
     路由 GET  /oauth_callback/?code=xxx
     
     步骤: 
@@ -89,6 +89,8 @@ class QQLoginURLView(View):
 
 from apps.oauth.models import OAuthQQUser
 from django.contrib.auth import login
+from apps.users.models import User
+import json
 class OauthQQView(View):
     def get(self, request):
         # 1.获取code
@@ -123,4 +125,56 @@ class OauthQQView(View):
             response = JsonResponse({'code': 0, 'errmsg': 'ok'})
             response.set_cookie('username', qquser.user.username)
             return response
+    def post(self, request):
+        # 1.接受请求
+        data = json.loads(request.body.decode())
+        # 2.获取请求参数
+        mobile = data.get('mobile')
+        password = data.get('password')
+        sms_code = data.get('sms_code')
+        openid = data.get('access_token')
+        # # 需要对数据进行验证(省略)
 
+        # 3.根据手机号进行用户信息查询
+        try:
+            user = User.objects.get(mobile=mobile)
+        except User.DoesNotExist:
+            # 手机号不存在
+            # 5.查询到用户手机号没有注册， 创建user信息，然后绑定
+            user = User.objects.create_user(username=mobile, mobile=mobile, password=password)
+        else:
+            # 手机号存在
+            # 4.查询到用户手机号注册 判断密码是否正确，密码正确可以直接保存（绑定） 用户和openid信息
+            if not user.check_password(password):
+                return JsonResponse({'code': 400, 'errmsg': '账号或密码错误'})
+        OAuthQQUser.objects.create(user=user, openid=openid)
+        # 6.完成状态保持
+        login(request, user)
+        # 7.返回响应
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
+        response.set_cookie('username', user.username)
+        return response
+
+
+
+"""
+绑定账号信息
+
+前端
+    当用户输入手机号，密码，短信验证码之后 发送axios请求，请求需要携带mobile,password,sms_code,access_token(openid)
+后端 
+    请求:   接受请求，获取请求参数
+    业务逻辑:  绑定完成状态
+    响应: 返回code=0 跳转到首页
+    路由 POST  oauth_callback/
+
+    步骤: 
+        1.接受请求
+        2.获取请求参数
+        3.根据手机号进行用户信息查询
+        4.查询到用户手机号注册 判断密码是否正确，密码正确可以直接保存（绑定） 用户和openid信息
+        5.查询到用户手机号没有注册， 创建user信息，然后绑定
+        6.完成状态保持
+        7.返回响应
+
+"""
