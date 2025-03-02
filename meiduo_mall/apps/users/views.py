@@ -162,6 +162,7 @@ class LogoutView(View):
         return response
 
 """
+判断用户是否登录
 用户中心也必须是登录用户
 LoginRequiredMixin 未登录的用户 会返回重定向 重定向并不是JSON数据
 需要返回JSON数据
@@ -170,3 +171,5 @@ from utils.views import LoginRequiredJsonMixin
 class CenterView(LoginRequiredJsonMixin, View):
     def get(self, request):
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
+
