@@ -47,6 +47,7 @@ class RegisterView(View):
         password = body_dict.get('password')
         password2 = body_dict.get('password2')
         mobile = body_dict.get('mobile')
+        allow = body_dict.get('allow')
         # sms_code = body_dict.get('sms_code')
         allow = body_dict.get('allow')
         #     3. 验证数据
@@ -57,19 +58,33 @@ class RegisterView(View):
         if not re.match('[a-zA-Z0-9_-]{5,20}', username):
             return JsonResponse({'code': 400, 'errmsg': '用户名不满足规则'})
         #         3.3 密码满足规则
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return JsonResponse({'code': 400, 'errmsg': 'password格式有误!'})
         #         3.4 确认密码与密码一致
+        if password != password2:
+            return JsonResponse({'code': 400, 'errmsg': '两次输入不对!'})
         #         3.5 手机号满足规则，同时不能重复
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return JsonResponse({'code': 400, 'errmsg': 'mobile格式有误!'})
         #         3.6 需要同意协议
+        if allow != True:
+            return JsonResponse({'code': 400, 'errmsg': 'allow格式有误!'})
         #     4. 数据入库
         # user = User(username=username, password=password, mobile=mobile, sms_code=sms_code)
         # user.save()
         # User.objects.create(username=username, password=password, mobile=mobile) # 不加密
         # 密码加密
-        user = User.objects.create_user(username=username, password=password, mobile=mobile)
+        # user = User.objects.create_user(username=username, password=password, mobile=mobile)
         from django.contrib.auth import login
+        try:
+            user = User.objects.create_user(username=username,
+                                            password=password,
+                                            mobile=mobile)
+        except Exception as e:
+            return JsonResponse({'code': 400, 'errmsg': '注册失败!'})
         login(request, user)
         #     5. 返回响应
-        return JsonResponse({'code': 0, 'errmsg': 'ok'})
+        return JsonResponse({'code': 0, 'errmsg': '注册成功'})
 
 """
 如果需求是注册成功后即表示用户认证通过，那么此时可以在注册成功后实现状态保持 (注册成功即已登录)
