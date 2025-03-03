@@ -31,17 +31,17 @@ class AreaView(View):
             provinces = Area.objects.filter(parent=None)
             # 查询结构集
             # 2.将对象转换为字典数据
-            provinces_list = []
+            province_list = []
             for province in provinces:
-                provinces_list.append({
+                province_list.append({
                     'id': province.id,
                     'name': province.name,
                 })
             # 保存缓存数据
             # cache.set(key, value ,expire)
-            cache.set('province', provinces_list, 24 * 3600)
+            cache.set('province', province_list, 24 * 3600)
         # 3.返回信息
-        return JsonResponse({'code': 0, 'errmsg': 'ok', 'province_list': provinces_list})
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'province_list': province_list})
 
 
 """
