@@ -14,11 +14,11 @@
 """
 import re
 import json
-from email import message
 
 from django.views import View
 from apps.users.models import User
 from django.http import JsonResponse
+
 class UsernameCountView(View):
     def get(self, request, username):
         count = User.objects.filter(username=username).count()
@@ -314,3 +314,76 @@ class EmailVerifyView(View):
         user.save()
         # 7.返回响应JSON
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
+"""
+新增地址
+
+前端:
+    当用户完成地址信息之后，前端应该发送一个axios请求 携带相关信息
+后端:
+    请求:   接受请求，获取参数，验证参数
+    业务逻辑: 数据入库
+    响应: 返回响应JSON
+    路由: POST /addresses/create/
+    步骤:
+        1.接受请求
+        2.获取参数，验证参数
+        3.数据入库
+        4.返回响应JSON
+
+"""
+
+from apps.users.models import Address
+class AddressCreateView(LoginRequiredJsonMixin, View):
+    def post(self, request):
+        # 1.接受请求
+        data = json.loads(request.body.decode())
+        # 2.获取参数，验证参数
+        receiver = data.get('receiver')
+        province_id = data.get('province_id')
+        city_id = data.get('city_id')
+        district_id = data.get('district_id')
+        place = data.get('place')
+        mobile = data.get('mobile')
+        tel = data.get('tel')
+        email = data.get('email')
+        user = request.user
+        # 数据检验
+        # 校验参数
+        if not all([receiver, province_id, city_id, district_id, place, mobile]):
+            return JsonResponse({'code': 400, 'errmsg': '缺少必传参数'})
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return JsonResponse({'code': 400, 'errmsg': '参数mobile有误'})
+        if tel:
+            if not re.match(r'^(0[0-9]{2,3}-)?([2-9][0-9]{6,7})+(-[0-9]{1,4})?$', tel):
+                return JsonResponse({'code': 400, 'errmsg': '参数tel有误'})
+        if email:
+            if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+                return JsonResponse({'code': 400, 'errmsg': '参数email有误'})
+        # 3.数据入库
+        address = Address.objects.create(
+            user=user,
+            title=receiver,
+            receiver=receiver,
+            province_id=province_id,
+            city_id=city_id,
+            district_id=district_id,
+            place=place,
+            mobile=mobile,
+            tel=tel,
+            email=email,
+        )
+        address_dict = {
+            "id": address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email,
+        }
+        # 4.返回响应JSON
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'address': address_dict})
