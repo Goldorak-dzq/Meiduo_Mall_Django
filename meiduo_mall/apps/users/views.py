@@ -492,7 +492,7 @@ class UpdateDestroyAddressView(LoginRequiredJsonMixin, View):
             # 将地址逻辑删除设置为True
             address.is_deleted = True
             address.save()
-        except Exception as e:
+        except Exception:
             return JsonResponse({'code': 400, 'errmsg': '删除地址失败'})
 
         # 响应删除地址结果
@@ -511,9 +511,32 @@ class DefaultAddressView(LoginRequiredJsonMixin, View):
             # 设置地址为默认地址
             request.user.default_address = address
             request.user.save()
-        except Exception as e:
+        except Exception:
             return JsonResponse({'code': 400, 'errmsg': '设置默认地址失败'})
 
         # 响应设置默认地址结果
         return JsonResponse({'code': 0, 'errmsg': '设置默认地址成功'})
 
+
+# 修改地址标题
+class UpdateTitleAddressView(LoginRequiredJsonMixin, View):
+    """设置地址标题"""
+
+    def put(self, request, address_id):
+        """设置地址标题"""
+        # 接收参数：地址标题
+        json_dict = json.loads(request.body.decode())
+        title = json_dict.get('title')
+
+        try:
+            # 查询地址
+            address = Address.objects.get(id=address_id)
+
+            # 设置新的地址标题
+            address.title = title
+            address.save()
+        except Exception:
+            return JsonResponse({'code': 400, 'errmsg': '设置地址标题失败'})
+
+        # 4.响应删除地址结果
+        return JsonResponse({'code': 0, 'errmsg': '设置地址标题成功'})

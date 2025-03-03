@@ -3,7 +3,7 @@
 # @Time:2025/2/26 11:29
 from django.urls import path
 from apps.users.views import UsernameCountView, RegisterView, LoginView, LogoutView, CenterView, EmailView, EmailVerifyView
-from apps.users.views import AddressCreateView, AddressView, UpdateDestroyAddressView, DefaultAddressView
+from apps.users.views import AddressCreateView, AddressView, UpdateDestroyAddressView, DefaultAddressView, UpdateTitleAddressView
 urlpatterns = [
     # 判断用户名是否重复
     path('usernames/<username:username>/count/', UsernameCountView.as_view()),
@@ -17,5 +17,6 @@ urlpatterns = [
     path('addresses/', AddressView.as_view()),
     path('addresses/<int:address_id>/', UpdateDestroyAddressView.as_view()),
     path('addresses/<int:address_id>/default/', DefaultAddressView.as_view()),
+    path('addresses/<int:address_id>/title/', UpdateTitleAddressView.as_view()),
 
 ]
