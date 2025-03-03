@@ -2,7 +2,7 @@
 # @Author: DZQ 
 # @Time:2025/2/26 11:29
 from django.urls import path
-from apps.users.views import UsernameCountView, RegisterView, LoginView, LogoutView, CenterView, EmailView
+from apps.users.views import UsernameCountView, RegisterView, LoginView, LogoutView, CenterView, EmailView, EmailVerifyView
 
 urlpatterns = [
     # 判断用户名是否重复
@@ -12,4 +12,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view()),
     path('info/', CenterView.as_view()),
     path('emails/', EmailView.as_view()),
+    path('emails/verification/', EmailVerifyView.as_view()),
 ]
