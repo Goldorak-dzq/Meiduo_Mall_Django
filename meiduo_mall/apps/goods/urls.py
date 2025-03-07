@@ -2,9 +2,10 @@
 # @Author: DZQ 
 # @Time:2025/3/6 01:15
 from django.urls import path
-from apps.goods.views import IndexView
+from apps.goods.views import IndexView, ListView
 
 urlpatterns = [
     path('index/', IndexView.as_view()),
+    path('list/<int:category_id>/skus/', ListView.as_view()),
 
 ]

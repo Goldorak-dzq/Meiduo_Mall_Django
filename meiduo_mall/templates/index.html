@@ -82,9 +82,11 @@
 {#        轮播图 广告 #}
 		<ul class="slide">
             {% for lbt in contents.index_lbt %}
-            {# <li><a href="{{ lbt.url }}"><img src="http://image.meiduo.site:8888/{{ lbt.image }}" alt="{{ lbt.title }}"></a></li> #}
-            <li><a href="{{ lbt.url }}"><img src="{{ lbt.image.url }}" alt="{{ lbt.title }}"></a></li>
-
+                <li>
+                    <a href="{{ lbt.url }}">
+                        <img src="{{ lbt.image.url }}" alt="{{ lbt.title }}">
+                    </a>
+                </li>
             {% endfor %}
 		</ul>
 		<div class="prev"></div>

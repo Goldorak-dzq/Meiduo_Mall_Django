@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-+e+cnnskre+*vts4m1p7yfedpj%rprc7(dpfn3uesaoy8zgqx_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.meiduomall.site', 'www.meiduo.site', '127.0.0.1']
+ALLOWED_HOSTS = ['www.meiduomall.site', 'www.meiduo.site', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -232,7 +232,7 @@ QQ_CLIENT_SECRET = 'c6ce949e04e12ecc909ae6a8b09b637c'
 # 我们申请时添加的: 登录成功后回调的路径
 QQ_REDIRECT_URI = 'http://www.meiduo.site:8080/oauth_callback.html'
 
-######################邮件发送###############################
+###################################邮件发送#############################
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # 邮件服务器和端口号
 EMAIL_HOST = 'smtp.163.com'
@@ -243,3 +243,11 @@ EMAIL_HOST_USER = 'dzq1780315381@163.com'
 EMAIL_HOST_PASSWORD = 'MK54yMWe7MxBQDUD'
 # 收件人看到的发件人
 EMAIL_FROM = '美多商城<dzq1780315381@163.com>'
+
+############################加载自定义文件存储类###########################
+# 指定自定义的Django文件存储类
+DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.MyStorage'
+
+# FastDFS相关参数
+# FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
+FDFS_BASE_URL = 'http://192.168.88.111:8888/'

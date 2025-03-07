@@ -14,3 +14,9 @@ from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
 class LoginRequiredJsonMixin(LoginRequiredMixin):
     def handle_no_permission(self):
         return JsonResponse({'code': 400, 'errmsg': '没有登录'})
+
+# fdfs 上传文件到fdfs中
+# from fdfs_client.client import Fdfs_client
+# client = Fdfs_client('utils/fastdfs/client.conf')
+# client.upload_by_filename('C:/Users/Lenovo/Desktop/123.png')
+# http://192.168.88.111:8888/group1/M00/00/00/wKhYb2fKcgyAPVV2AACN6fGHbw4623.png
