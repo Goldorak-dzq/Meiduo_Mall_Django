@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'apps.contents',
     # CORS
     'corsheaders',
-
+    # 全文检索
+    'haystack',
 ]
 
 MIDDLEWARE = [
@@ -249,5 +250,15 @@ EMAIL_FROM = '美多商城<dzq1780315381@163.com>'
 DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.MyStorage'
 
 # FastDFS相关参数
-# FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
-FDFS_BASE_URL = 'http://192.168.88.111:8888/'
+FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
+# FDFS_BASE_URL = 'http://192.168.88.111:8888/'
+
+
+##########################Haystack###################################
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.88.111:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall', # Elasticsearch建立的索引库的名称
+    },
+}

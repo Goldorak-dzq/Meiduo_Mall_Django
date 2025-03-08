@@ -32,7 +32,6 @@ class IndexView(View):
         }
         return render(request, 'index.html', context)
 
-
 """
  需求:
         根据点击的分类，获取分类数据（排序、分页）
@@ -127,3 +126,5 @@ class HotGoodsView(View):
             })
 
         return JsonResponse({'code':0, 'errmsg':'OK', 'hot_skus':hot_skus})
+
+# Elasticsearch
