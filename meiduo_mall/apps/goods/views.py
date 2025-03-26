@@ -133,7 +133,7 @@ class HotGoodsView(View):
 
 # 搜索
 from haystack.views import SearchView
-from django.http import JsonResponse
+# from django.http import JsonResponse
 class SKUSearchView(SearchView):
     def create_response(self):
         # 获取搜索结果
@@ -164,8 +164,8 @@ class SKUSearchView(SearchView):
     详情页面需要静态化展示
     
 """
-from utils.goods import get_categories
-from utils.goods import get_breadcrumb
+# from utils.goods import get_categories
+# from utils.goods import get_breadcrumb
 from utils.goods import get_goods_specs
 class DetailView(View):
     """商品详情页"""
@@ -175,17 +175,57 @@ class DetailView(View):
         try:
             sku = SKU.objects.get(id=sku_id)
         except SKU.DoesNotExist:
-            return render(request, '404.html')
+            pass
 
         # 查询商品频道分类
         categories = get_categories()
         # 查询面包屑导航
         breadcrumb = get_breadcrumb(sku.category)
-
+        goods_specs = get_goods_specs(sku)
         # 渲染页面
         context = {
             'categories': categories,
             'breadcrumb': breadcrumb,
             'sku': sku,
+            'specs': goods_specs
         }
         return render(request, 'detail.html', context)
+
+
+"""
+首页详细页面
+先查询数据库的数据
+后进行HTML页面的渲染
+
+用户直接访问到应该数据查询 已经被渲染的HTML页面  （静态化）
+
+"""
+# import time
+# # 渲染HTML页面， 然后将渲染的HTML写入指定文件
+# def generic_meiduo_index():
+#     print('----------%s-------------'%time.ctime())
+#     # 商品分类数据
+#     categories = get_categories()
+#     # 广告数据
+#     contents = {}
+#     content_categories = ContentCategory.objects.all()
+#     for cat in content_categories:
+#         contents[cat.key] = cat.content_set.filter(status=True).order_by('sequence')
+#
+#     # 渲染模板的上下文
+#     context = {
+#         'categories': categories,
+#         'contents': contents,
+#     }
+#     import os
+#     # 1.加载渲染模板
+#     from django.template import loader
+#     index_template = loader.get_template('index.html')
+#     # 2.把数据给模板
+#     index_html = index_template.render(context)
+#     # 3.把渲染好的HTML写入指定文件
+#     from meiduo_mall import settings
+#     file_path = os.path.join(os.path.dirname(settings.BASE_DIR), 'front_end_pc/index.html')
+#     with open(file_path, 'w', encoding='utf-8') as f:
+#         f.write(index_html)
+

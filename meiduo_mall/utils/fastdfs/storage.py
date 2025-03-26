@@ -9,42 +9,36 @@ Django 必须能够在没有任何参数的情况下实例化你的存储系统�
 """
 
 from django.core.files.storage import Storage
-
+from django.utils.deconstruct import deconstructible
 from meiduo_mall import settings
 
-
-
+@deconstructible
 class MyStorage(Storage):
+    # def __init__(self, fdfs_base_url=None):
+    #     """
+    #     构造方法，可以不带参数，也可以携带参数
+    #     :param base_url: Storage的IP
+    #     """
+    #     self.fdfs_base_url = fdfs_base_url or settings.FDFS_BASE_URL
+
+    def __init__(self, fdfs_base_url=None):
+        self.fdfs_base_url = fdfs_base_url or settings.FDFS_BASE_URL
+
     def _open(self, name, mode='rb'):
         pass
-    def _save(self, name, content, max_length=None):
+
+    def _save(self, name, content):
         pass
 
-    def url(self, name):
-        return settings.FDFS_BASE_URL + name
-        # return f"http://192.168.88.111:8888/{name.lstrip('/')}"
+    # def url(self, name):
+    #     """
+    #     返回name所指文件的绝对URL
+    #     :param name: 要读取文件的引用:group1/M00/00/00/wKhnnlxw_gmAcoWmAAEXU5wmjPs35.jpeg
+    #     :return: http://192.168.103.158:8888/group1/M00/00/00/wKhnnlxw_gmAcoWmAAEXU5wmjPs35.jpeg
+    #     """
+    #     # return 'http://192.168.103.158:8888/' + name
+    #     # return 'http://image.meiduo.site:8888/' + name
+    #     return self.fdfs_base_url + name
 
-# class FastDFSStorage(Storage):
-#     """自定义文件存储系统，修改存储的方案"""
-#     def __init__(self, fdfs_base_url=None):
-#         """
-#         构造方法，可以不带参数，也可以携带参数
-#         :param base_url: Storage的IP
-#         """
-#         self.fdfs_base_url = fdfs_base_url or settings.FDFS_BASE_URL
-#
-#     def _open(self, name, mode='rb'):
-#         pass
-#
-#     def _save(self, name, content):
-#         pass
-#
-#     def url(self, name):
-#         """
-#         返回name所指文件的绝对URL
-#         :param name: 要读取文件的引用:group1/M00/00/00/wKhnnlxw_gmAcoWmAAEXU5wmjPs35.jpeg
-#         :return: http://192.168.103.158:8888/group1/M00/00/00/wKhnnlxw_gmAcoWmAAEXU5wmjPs35.jpeg
-#         """
-#         # return 'http://192.168.103.158:8888/' + name
-#         # return 'http://image.meiduo.site:8888/' + name
-#         return self.fdfs_base_url + name
+    def url(self, name):
+        return f"{self.fdfs_base_url}{name}"
