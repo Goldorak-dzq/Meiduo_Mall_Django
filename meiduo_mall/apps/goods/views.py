@@ -151,3 +151,41 @@ class SKUSearchView(SearchView):
             })
         # 拼接参数, 返回
         return JsonResponse(sku_list, safe=False)
+
+"""
+需求:
+    详情页面
+    
+    1.分类数据
+    2.面包屑
+    3.SKU信息
+    4.规格信息
+    
+    详情页面需要静态化展示
+    
+"""
+from utils.goods import get_categories
+from utils.goods import get_breadcrumb
+from utils.goods import get_goods_specs
+class DetailView(View):
+    """商品详情页"""
+    def get(self, request, sku_id):
+        """提供商品详情页"""
+        # 获取当前sku的信息
+        try:
+            sku = SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return render(request, '404.html')
+
+        # 查询商品频道分类
+        categories = get_categories()
+        # 查询面包屑导航
+        breadcrumb = get_breadcrumb(sku.category)
+
+        # 渲染页面
+        context = {
+            'categories': categories,
+            'breadcrumb': breadcrumb,
+            'sku': sku,
+        }
+        return render(request, 'detail.html', context)
