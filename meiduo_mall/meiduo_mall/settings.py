@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'corsheaders',
     # 全文检索
     'haystack',
+    # 定时任务
+    'django_crontab',
+
 ]
 
 MIDDLEWARE = [
@@ -262,3 +265,30 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'meiduo_mall',  # Elasticsearch建立的索引库的名称
     },
 }
+
+#################定时任务##########################
+"""
+定时时间基本格式 :
+*  *  *  *  *
+分 时 日 月 周    命令
+
+M: 分钟（0-59）。每分钟用 * 或者 */1 表示
+H：小时（0-23）。（0表示0点）
+D：天（1-31）。
+m: 月（1-12）。
+d: 一星期内的天（0~6，0为星期天）。
+
+元素第二个参数是 定时任务（函数）
+python manage.py crontab add
+
+"""
+CRONJOBS = [
+    # 每1分钟生成一次首页静态文件
+    # ('*/1 * * * *', 'apps.contents.crons.generate_static_index_html', '>> ' + os.path.join(BASE_DIR, 'logs/crontab.log'))
+    ('*/1 * * * *', 'apps.contents.crons.generic_meiduo_index', '>> E:\\meiduo_mall\\Meiduo_Mall_Django\\meiduo_mall\\logs\\crontab.log')
+]
+
+##########################APScheduler###########################
+from apscheduler.schedulers.background import BackgroundScheduler
+scheduler = BackgroundScheduler()
+scheduler.start()
