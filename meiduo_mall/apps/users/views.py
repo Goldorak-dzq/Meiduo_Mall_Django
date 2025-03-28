@@ -16,6 +16,8 @@ import re
 import json
 
 from django.views import View
+
+from apps.goods.models import SKU
 from apps.users.models import User
 from django.http import JsonResponse
 
@@ -585,3 +587,67 @@ class ChangePasswordView(LoginRequiredJsonMixin, View):
 
         # # 响应密码修改结果：重定向到登录界面
         return response
+
+"""
+1.最近浏览记录只有登录用户可以访问，只记录登录用户浏览记录、
+2.浏览记录应该有顺序
+3.没有分页
+
+用户访问商品详情，添加浏览记录
+在个人中心，展示浏览记录
+
+
+user_id,sku_id
+key: value
+
+redis:
+    zset
+    list
+    
+"""
+"""
+添加浏览记录
+    前端:
+        当登录用户访问某一个具体SKU页面的时候，发送一个axious请求 携带sku_id
+
+    后端:
+        请求:   接受请求，获取参数,验证参数
+        业务逻辑:  连接redis,先去重保存到redis中，只保存5条记录                   
+        响应:     返回JSON
+        
+        路由 POST
+        
+        步骤: 
+            1.接受参数
+            2.获取参数
+            3.验证参数
+            4.连接redis list
+            5.去重
+            6.保存到redis
+            7.只保存5条
+            8.返回JSON
+
+"""
+from django_redis import get_redis_connection
+class UserHistoryView(LoginRequiredJsonMixin, View):
+    def post(self, request):
+        user = request.user
+        # 1.接受参数
+        data = json.loads(request.body.decode())
+        # 2.获取参数
+        sku_id = data.get('sku_id')
+        # 3.验证参数
+        try:
+            sku = SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return JsonResponse({'code': 400, 'errmsg': '没有此商品'})
+        # 4.连接redis list
+        redis_cli = get_redis_connection('history')
+        # 5.去重
+        redis_cli.lrem('history_%s'%user.id, sku_id)
+        # 6.保存到redis
+        redis_cli.lpush('history_%s'%user.id, sku_id)
+        # 7.只保存5条
+        redis_cli.ltrim('history_%s'%user.id, 0, 4)
+        # 8.返回JSON
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
