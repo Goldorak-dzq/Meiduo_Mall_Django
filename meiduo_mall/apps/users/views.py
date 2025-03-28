@@ -627,6 +627,23 @@ redis:
             7.只保存5条
             8.返回JSON
 
+展示浏览记录
+    前端:
+        用户访问浏览记录的时候，发送axios请求 请求携带session信息
+    后端:
+        请求:   接受请求，获取参数,验证参数
+        业务逻辑:  连接redis,获取redis数据，根据商品id进行数据查询，将对象转换为字典            
+        响应:     返回JSON
+        
+        路由 GET
+        
+        步骤: 
+            1.连接redis
+            2.获取redis数据
+            3.根据商品id进行数据查询
+            4.将对象转换为字典  
+            5.返回JSON
+
 """
 from django_redis import get_redis_connection
 class UserHistoryView(LoginRequiredJsonMixin, View):
@@ -646,8 +663,29 @@ class UserHistoryView(LoginRequiredJsonMixin, View):
         # 5.去重
         redis_cli.lrem('history_%s'%user.id, sku_id)
         # 6.保存到redis
-        redis_cli.lpush('history_%s'%user.id, sku_id)
+        redis_cli.lpush('history_%s'%user.id, 0, sku_id)
         # 7.只保存5条
         redis_cli.ltrim('history_%s'%user.id, 0, 4)
         # 8.返回JSON
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
+    def get(self, request):
+        # 1.连接redis
+        redis_cli = get_redis_connection('history')
+        # 2.获取redis数据
+        ids = redis_cli.lrange('history_%s'%request.user.id, 0, 4)
+        # 3.根据商品id进行数据查询
+
+        history_list = []
+        for sku_id in ids:
+            sku = SKU.objects.get(id=sku_id)
+            # 4.将对象转换为字典
+            history_list.append({
+                'id': sku.id,
+                'name': sku.name,
+                'default_image_url': sku.default_image.url,
+                'price': sku.price
+            })
+
+        # 5.返回JSON
+        return JsonResponse({'code': 0, 'errmsg': 'OK', 'skus': history_list})
