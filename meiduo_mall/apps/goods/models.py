@@ -1,14 +1,16 @@
-from django.db import models
 
 # Create your models here.
 
 from django.db import models
 from utils.models import BaseModel
 
+
 class GoodsCategory(BaseModel):
     """商品类别"""
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=10, verbose_name='名称')
-    parent = models.ForeignKey('self', related_name='subs', null=True, blank=True, on_delete=models.CASCADE, verbose_name='父类别')
+    parent = models.ForeignKey('self', related_name='subs', null=True, blank=True, on_delete=models.CASCADE,
+                               verbose_name='父类别')
 
     class Meta:
         db_table = 'tb_goods_category'
@@ -67,9 +69,12 @@ class SPU(BaseModel):
     """商品SPU"""
     name = models.CharField(max_length=50, verbose_name='名称')
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, verbose_name='品牌')
-    category1 = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='cat1_spu', verbose_name='一级类别')
-    category2 = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='cat2_spu', verbose_name='二级类别')
-    category3 = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='cat3_spu', verbose_name='三级类别')
+    category1 = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='cat1_spu',
+                                  verbose_name='一级类别')
+    category2 = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='cat2_spu',
+                                  verbose_name='二级类别')
+    category3 = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='cat3_spu',
+                                  verbose_name='三级类别')
     sales = models.IntegerField(default=0, verbose_name='销量')
     comments = models.IntegerField(default=0, verbose_name='评价数')
     desc_detail = models.TextField(default='', verbose_name='详细介绍')
@@ -164,3 +169,21 @@ class SKUSpecification(BaseModel):
 
     def __str__(self):
         return '%s: %s - %s' % (self.sku, self.spec.name, self.option.value)
+
+
+"""
+问题：
+    工程没有执行迁移。 数据库中已经有响应的表了
+
+
+"""
+class GoodsVisitCount(BaseModel):
+    """统计分类商品访问量模型类"""
+    category = models.ForeignKey(GoodsCategory, on_delete=models.CASCADE, verbose_name='商品分类')
+    count = models.IntegerField(verbose_name='访问量', default=0)
+    date = models.DateField(auto_now_add=True, verbose_name='统计日期')
+
+    class Meta:
+        db_table = 'tb_goods_visit'
+        verbose_name = '统计分类商品访问量'
+        verbose_name_plural = verbose_name

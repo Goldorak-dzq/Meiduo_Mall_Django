@@ -192,3 +192,48 @@ class DetailView(View):
         return render(request, 'detail.html', context)
 
 
+"""
+需求:
+        统计每一天的分类商品访问量
+前端:
+        当访问具体页面的时候，前端发送一个axios请求 携带分类id
+后端:
+    请求:   接受请求，获取参数
+    业务逻辑:  查询有没有，有的话更新数据，没有的话新建数据                    
+    响应:     返回JSON
+    
+    路由 POST
+    
+    步骤: 
+        1.接受分类id
+        2.验证参数
+        3.查询当天记录
+        4.没有新建数据
+        5.有的话更新数据
+        6.返回响应
+"""
+from apps.goods.models import GoodsVisitCount
+from datetime import date
+class CategoryVisitCountView(View):
+    def post(self, request ,category_id):
+        #     1.接受分类id
+        #     2.验证参数
+        try:
+            category = GoodsCategory.objects.get(id=category_id)
+        except GoodsCategory.DoesNotExist:
+            return JsonResponse({'code': 400, 'errmsg': '没有此分类'})
+        #     3.查询当天记录
+        today = date.today()
+        try:
+            gvc = GoodsVisitCount.objects.get(category=category,
+                                              date=today)
+        except GoodsVisitCount.DoesNotExist:
+            #     4.没有新建数据
+            GoodsVisitCount.objects.create(category=category,
+                                           date=today,
+                                           count=1)
+        #     5.有的话更新数据
+        gvc.count += 1
+        gvc.save()
+        #     6.返回响应
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
