@@ -57,7 +57,7 @@
     <div class="goods_count fl" id="show_count">[[cart_total_count]]</div>
     <ul class="cart_goods_show">
         <li v-for="sku in carts">
-            <img :src="sku.default_image_url" alt="商品图片">
+            <img :src="'http://192.168.88.111:8888/' + sku.default_image_url" alt="商品图片">
             <h4>[[ sku.name ]]</h4>
             <div>[[ sku.count ]]</div>
         </li>
@@ -274,7 +274,7 @@
                 <h3>热销排行</h3>
                 <ul>
                     <li v-for="sku in hot_skus">
-                        <a :href="sku.url"><img :src="sku.default_image_url"></a>
+                        <a :href="sku.url"><img :src="'http://192.168.88.111:8888/' + sku.default_image_url">
                         <h4><a :href="sku.url">[[sku.name]]</a></h4>
                         <div class="prize">￥[[sku.price]]</div>
                     </li>
@@ -291,7 +291,7 @@
 
             <ul class="goods_type_list clearfix">
                 <li v-for="sku in skus">
-                    <a :href="sku.url"><img :src="sku.default_image_url"></a>
+                    <a :href="sku.url"><img :src="'http://192.168.88.111:8888/' + sku.default_image_url">
                     <h4><a :href="sku.url">[[sku.name]]</a></h4>
                     <div class="operate">
                         <span class="prize">￥[[sku.price]]</span>
