@@ -12,6 +12,4 @@ urlpatterns = [
     path('detail/<sku_id>/', DetailView.as_view()),
     path('detail/visit/<category_id>/', CategoryVisitCountView.as_view()),
 
-
-
 ]
