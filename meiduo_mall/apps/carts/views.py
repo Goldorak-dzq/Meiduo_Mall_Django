@@ -168,6 +168,7 @@ class CartsView(View):
     6 返回响应
 
     """
+
     def get(self, request):
         # 1.判断用户是否登录
         user = request.user
@@ -223,26 +224,22 @@ class CartsView(View):
             })
         # 6 返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'cart_skus': sku_list})
-
-        """
-         1. 获取用户信息
-         2. 接受数据
-         3. 验证数据
-         4. 登录用户更新redis
-            4.1 连接redis
-            4.2 hash
-            4.3 set
-            4.4 返回响应
-         5. 未登录用户查询cookie
-            5.1 先读取购物车数据
-                有 解码数据
-                没有 初始化一个空字典
-            5.2 更新数据
-            5.3 重新对字典进行编码和base64加密
-            5.4 设置cookie
-            5.5 返回响应
-
-        """
+        # 1. 获取用户信息
+        # 2. 接受数据
+        # 3. 验证数据
+        # 4. 登录用户更新redis
+            #    4.1 连接redis
+            #    4.2 hash
+            #    4.3 set
+            #    4.4 返回响应
+        # 5. 未登录用户查询cookie
+            #    5.1 先读取购物车数据
+                #        有 解码数据
+                #        没有 初始化一个空字典
+            #    5.2 更新数据
+            #    5.3 重新对字典进行编码和base64加密
+            #    5.4 设置cookie
+            #    5.5 返回响应
 
     def put(self, request):
         # 1. 获取用户信息
@@ -298,5 +295,67 @@ class CartsView(View):
             response = JsonResponse({'code': 0, 'errmsg': 'ok', 'carts_sku': {'count': count, 'selected': selected}})
             response.set_cookie('carts', new_carts.decode(), max_age=3600 * 24 * 7)
             #    5.5 返回响应
+            return response
+
+    """
+    1.接受参数
+    2.验证参数
+    3.判断用户登录状态
+    4.登录用户 操作redis
+        4.1 连接redis
+        4.2 操作 hash
+        4.3 操作 set
+        4.4 返回响应
+    5. 未登录用户操作cookie
+        5.1读取cookie中的购物车数据
+            判断数据是否存在
+            存在解码
+            不存在 初始化字典
+        5.2 删除数据{}
+        5.3 对字典数据进行编码和base64加密
+        5.4 设置cookie
+        5.5 返回响应
+    """
+    def delete(self, request):
+        # 1.接受参数
+        data = json.loads(request.body)
+        # 2.验证参数
+        sku_id = data.get('sku_id')
+        try:
+            SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return JsonResponse({'code': 400, 'errmsg': '没有此商品'})
+        # 3.判断用户登录状态
+        user = request.user
+        if user.is_authenticated:
+            # 4.登录用户 操作redis
+            #     4.1 连接redis
+            redis_cli = get_redis_connection('carts')
+            #     4.2 操作 hash
+            redis_cli.hdel('carts_%s' % user.id, sku_id)
+            #     4.3 操作 set
+            redis_cli.srem('selected_%s' % user.id, sku_id)
+            #     4.4 返回响应
+            return JsonResponse({'code': 0, 'errmsg': 'ok'})
+        else:
+            # 5. 未登录用户操作cookie
+            #     5.1读取cookie中的购物车数据
+            cookie_carts = request.COOKIES.get('carts')
+            #         判断数据是否存在
+            if cookie_carts is not None:
+                #         存在解码
+                carts = pickle.loads(base64.b64decode(cookie_carts))
+            else:
+                #         不存在 初始化字典
+                carts = {}
+
+            #     5.2 删除数据{}
+            del carts[sku_id]
+            #     5.3 对字典数据进行编码和base64加密
+            new_carts = base64.b64encode(pickle.dumps(carts))
+            #     5.4 设置cookie
+            response = JsonResponse({'code': 0, 'errmsg': 'ok'})
+            response.set_cookie('carts', new_carts.decode(), max_age=3600 * 24 * 7)
+            #     5.5 返回响应
             return response
 
