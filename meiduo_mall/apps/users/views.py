@@ -146,6 +146,8 @@ class LoginView(View):
             return JsonResponse({'code': 400, 'errmsg': '账号或密码错误'})
         # 4.session
         login(request, user)
+
+
         # 5.判断是否记住登录
         if remembered:
             # 记住登录 2周
@@ -158,6 +160,10 @@ class LoginView(View):
         response = JsonResponse({'code': 0, 'errmsg': 'ok'})
         # 首页显示用户信息，添加cookie信息
         response.set_cookie('username', user.username)
+
+        # 必须是登录后 合并
+        from apps.carts.utils import merge_cookie_to_redis
+        response = merge_cookie_to_redis(request, response)
         return response
 
 """

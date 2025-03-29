@@ -48,6 +48,7 @@ from apps.goods.models import SKU
 
 class CartsView(View):
     """
+    添加购物车
     前端:
         点击购物车之后 前端将商品id，数量 发送给后端
     后端:
@@ -161,6 +162,7 @@ class CartsView(View):
             return response
 
     """
+    展示购物车
     1.判断用户是否登录
     2.登录用户查询redis
         2.1 连接redis
@@ -230,6 +232,7 @@ class CartsView(View):
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'cart_skus': sku_list})
 
     """
+    删除购物车
     # 1. 获取用户信息
     # 2. 接受数据
     # 3. 验证数据
