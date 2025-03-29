@@ -148,3 +148,77 @@ class CartsView(View):
             response.set_cookie('carts', base64encode.decode(), max_age=3600 * 24 * 12)
             # 5.5返回响应
             return response
+    """
+    1.判断用户是否登录
+    2.登录用户查询redis
+        2.1 连接redis
+        2.2 hash {sku_id:count}
+        2.3 set  {sku_id}
+        2.4 遍历判断
+
+    3.未登录用户查询cookie
+        3.1 读取cookie信息
+        3.2 判断是否存在购物车数据
+            3.2.1存在 解码     
+            3.2.2不存在 初始化空字典
+    4 根据商品id查询商品信息 
+    5 将对象数据转换为字典数据
+    6 返回响应
+
+    """
+    def get(self, request):
+        # 1.判断用户是否登录
+        user = request.user
+        if user.is_authenticated:
+            # 2.登录用户查询redis
+            #     2.1 连接redis
+            redis_cli = get_redis_connection('carts')
+            #     2.2 hash {sku_id:count, sku_id:count,...}
+            sku_id_counts = redis_cli.hgetall('carts_%s' % user.id)
+            #     2.3 set  {sku_id, sku_id, ...}
+            selected_ids = redis_cli.smembers('selected_%s' % user.id)
+            #     2.4 将redis数据转换为和cookie一样 后续可以统一操作
+            carts = {}
+            for sku_id, count in sku_id_counts.items():
+                carts[sku_id] = {
+                    'count': count,
+                    'selected': sku_id in selected_ids,
+                }
+
+        else:
+            # 3.未登录用户查询cookie
+            #     3.1 读取cookie信息
+            cookie_carts = request.COOKIES.get('carts')
+            #     3.2 判断是否存在购物车数据
+            if cookie_carts is not None:
+                #         3.2.1存在 解码
+                carts = pickle.loads(base64.b64decode(cookie_carts))
+            else:
+                #         3.2.2不存在 初始化空字典
+                carts = {}
+
+        # 4 根据商品id查询商品信息
+        sku_ids = carts.keys()
+        skus = SKU.objects.filter(id__in=sku_ids)
+        sku_list = []
+        for sku in skus:
+            # 5 将对象数据转换为字典数据
+            sku_list.append({
+                # 'id': sku.id,
+                # 'price': sku.price,
+                # 'name': sku.name,
+                # 'default_image_url': sku.default_image.url,
+                # 'selected': carts[sku.id]['selected'],  # 选中状态
+                # 'count': carts[sku.id]['count'],  # 数量
+                # 'amount': sku.price * carts[sku.id]['count'],  # 总价格
+                'id': sku.id,
+                'name': sku.name,
+                'count': carts[sku.id]['count'],  # 数量
+                'selected': str(carts[sku.id]['selected']),  # 将True，转'True'，方便json解析
+                'default_image_url': sku.default_image.url,
+                'price': str(sku.price),  # 从Decimal('10.2')中取出'10.2'，方便json解析
+                'amount': str(sku.price * carts[sku.id]['count']),
+            })
+        # 6 返回响应
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'cart_skus': sku_list})
+
