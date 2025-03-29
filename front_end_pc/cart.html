@@ -56,7 +56,7 @@
     </ul>
     <ul class="cart_list_td clearfix" v-for="(sku,index) in cart">
         <li class="col01"><input type="checkbox" name="" v-model="sku.selected" @change="update_selected(index)"></li>
-        <li class="col02"><img :src="sku.default_image_url"></li>
+        <li class="col02"><img :src="'http://192.168.88.111:8888/' + sku.default_image_url">
         <li class="col03">[[ sku.name ]]</li>
         <li class="col05">[[ sku.price ]]元</li>
         <li class="col06">
