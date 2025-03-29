@@ -86,13 +86,14 @@ class CartsView(View):
                 5.5返回响应
     """
     def post(self, request):
+        """添加购物车"""
         # 1.接受参数
         data = json.loads(request.body)
         sku_id = data.get('sku_id')
         count = data.get('count')
         # 2.验证参数
         try:
-            sku = SKU.objects.get(id=sku_id)
+            SKU.objects.get(id=sku_id)
         except SKU.DoesNotExist:
             return JsonResponse({'code': 400, 'errmsg': '查无此商品'})
         # 类型强制转换
@@ -108,11 +109,20 @@ class CartsView(View):
             # 4.登录用户 保存redis
             # 4.1 连接redis
             redis_cli = get_redis_connection('carts')
+            pipline = redis_cli.pipeline()
             # 4.2 操作 hash
             # redis_cli.hset(key, filed, value)
-            redis_cli.hset('carts_%s' % user.id, sku_id, count)
+            # redis_cli.hset('carts_%s' % user.id, sku_id, count)
+            # hincrby  进行累加操作
+            # 性能优化
+            # 1.redis管道优化
+            # 2. 数据表SKU,SPU 默认图片 默认地址
+            # 3. 省市区数据缓存
+            pipline.hincrby('carts_%s' % user.id, sku_id, count)
             # 4.3 操作 set
-            redis_cli.sadd('selected_%s' % user.id, sku_id)
+            pipline.sadd('selected_%s' % user.id, sku_id)
+            # 执行pipline管道
+            pipline.execute()
             # 4.4 返回响应
             return JsonResponse({'code': 0, 'errmsg': 'ok'})
         else:
@@ -170,6 +180,7 @@ class CartsView(View):
     """
 
     def get(self, request):
+        """展示购物车"""
         # 1.判断用户是否登录
         user = request.user
         if user.is_authenticated:
@@ -183,8 +194,8 @@ class CartsView(View):
             #     2.4 将redis数据转换为和cookie一样 后续可以统一操作
             carts = {}
             for sku_id, count in sku_id_counts.items():
-                carts[sku_id] = {
-                    'count': count,
+                carts[int(sku_id)] = {
+                    'count': int(count),
                     'selected': sku_id in selected_ids,
                 }
 
@@ -207,41 +218,37 @@ class CartsView(View):
         for sku in skus:
             # 5 将对象数据转换为字典数据
             sku_list.append({
-                # 'id': sku.id,
-                # 'price': sku.price,
-                # 'name': sku.name,
-                # 'default_image_url': sku.default_image.url,
-                # 'selected': carts[sku.id]['selected'],  # 选中状态
-                # 'count': carts[sku.id]['count'],  # 数量
-                # 'amount': sku.price * carts[sku.id]['count'],  # 总价格
                 'id': sku.id,
+                'price': str(sku.price),
                 'name': sku.name,
-                'count': int(carts[sku.id]['count']),  # 数量
-                'selected': str(carts[sku.id]['selected']),  # 将True，转'True'，方便json解析
                 'default_image_url': sku.default_image.url,
-                'price': str(sku.price),  # 从Decimal('10.2')中取出'10.2'，方便json解析
-                'amount': str(sku.price * carts[sku.id]['count']),
+                'selected': str(carts[sku.id]['selected']),  # 选中状态
+                'count': carts[sku.id]['count'],  # 数量
+                'amount': str(sku.price * carts[sku.id]['count']),  # 总价格
             })
         # 6 返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'cart_skus': sku_list})
-        # 1. 获取用户信息
-        # 2. 接受数据
-        # 3. 验证数据
-        # 4. 登录用户更新redis
-            #    4.1 连接redis
-            #    4.2 hash
-            #    4.3 set
-            #    4.4 返回响应
-        # 5. 未登录用户查询cookie
-            #    5.1 先读取购物车数据
-                #        有 解码数据
-                #        没有 初始化一个空字典
-            #    5.2 更新数据
-            #    5.3 重新对字典进行编码和base64加密
-            #    5.4 设置cookie
-            #    5.5 返回响应
 
+    """
+    # 1. 获取用户信息
+    # 2. 接受数据
+    # 3. 验证数据
+    # 4. 登录用户更新redis
+        #    4.1 连接redis
+        #    4.2 hash
+        #    4.3 set
+        #    4.4 返回响应
+    # 5. 未登录用户查询cookie
+        #    5.1 先读取购物车数据
+            #        有 解码数据
+            #        没有 初始化一个空字典
+        #    5.2 更新数据
+        #    5.3 重新对字典进行编码和base64加密
+        #    5.4 设置cookie
+        #    5.5 返回响应
+    """
     def put(self, request):
+        """修改购物车"""
         # 1. 获取用户信息
         user = request.user
         # 2. 接受数据
@@ -317,6 +324,7 @@ class CartsView(View):
         5.5 返回响应
     """
     def delete(self, request):
+        """删除购物车"""
         # 1.接受参数
         data = json.loads(request.body)
         # 2.验证参数
