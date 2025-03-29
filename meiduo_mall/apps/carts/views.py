@@ -37,6 +37,8 @@ pickle模块使用：
 """
 
 import json
+import base64
+import pickle
 from django.http import JsonResponse
 from django.views import View
 from django_redis import get_redis_connection
@@ -114,15 +116,30 @@ class CartsView(View):
             return JsonResponse({'code': 0, 'errmsg': 'ok'})
         else:
             # 5.未登录用户保存cookie
-            # 5.1 先有cookie字典
-            carts = {
-                sku_id: {'count': count, 'selected': True},
+            # 先读取cookie数据
+            cookie_carts = request.COOKIES.get('carts')
+            if cookie_carts:
+                # 对加密的数据解密
+                carts = pickle.loads(base64.b64decode(cookie_carts))
+            else:
+                # 5.1 先有cookie字典
+                carts = {}
+
+            # 判断新增的商品有没有在购物车里
+            if sku_id in carts:
+                # 购物车中有商品id
+                origin_count = carts[sku_id]['count']
+                count += origin_count
+                carts[sku_id]['count'] = count
+
+            carts[sku_id] = {
+                'count': count,
+                'selected': True,
             }
+
             # 5.2 字典转化为bytes
-            import pickle
             carts_bytes = pickle.dumps(carts)
             # 5.3 bytes类型数据转换为base64编码
-            import base64
             base64encode = base64.b64encode(carts_bytes)
             # 5.4 设置cookie
             response = JsonResponse({'code': 0, 'errmsg': 'ok'})
