@@ -126,7 +126,7 @@ class OrderSettlementView(LoginRequiredJsonMixin, View):
         6.返回响应
 """
 import json
-from apps.orders.models import OrderInfo
+from apps.orders.models import OrderInfo, OrderGoods
 
 class OrderCommitView(LoginRequiredJsonMixin, View):
     def post(self, request):
@@ -164,7 +164,7 @@ class OrderCommitView(LoginRequiredJsonMixin, View):
         freight = Decimal('10.00')
         # 3.数据入库  生成订单(订单基本信息表和订单商品信息表)
         #     3.1 先保存订单基本信息表
-        OrderInfo.objects.create(
+        orderinfo = OrderInfo.objects.create(
             order_id=order_id,
             user=user,
             address=address,
@@ -176,16 +176,41 @@ class OrderCommitView(LoginRequiredJsonMixin, View):
         )
         #     3.2 再保存订单商品信息表
         #             3.2.1 连接redis
+        redis_cli = get_redis_connection('carts')
         #             3.2.2 获取hash
+        sku_id_counts = redis_cli.hgetall('carts_%s' % user.id)
         #             3.2.3 获取set
+        selected_ids = redis_cli.smembers('selected_%s' % user.id)
         #             3.2.4 遍历选中的商品id
         #                 重新一个数据 这个数据是选中的商品信息
+        carts = {}
+        for sku_id in selected_ids:
+            carts[int(sku_id)] = int(sku_id_counts[sku_id])
         #             3.2.5 根据选中商品的id进行查询
-        #             3.2.6 判断库存是否充足
-        #             3.2.7 如果充足 则库存减小 储量增加
-        #             3.2.8 如果不充足 下单失败
-        #             3.2.9 累加总数量和总金额
-        #             3.2.10 保存订单商品信息
+        for sku_id, count in carts.items():
+            sku = SKU.objects.get(id=sku_id)
+        #  3.2.6 判断库存是否充足
+            if sku.stock > count:
+                #  3.2.7 如果充足 则库存减小 储量增加
+                sku.stock -= count
+                sku.sales += count
+                sku.save()
+                # 3.2.9 累加总数量和总金额
+                orderinfo.total_count += count
+                orderinfo.total_amount += count
+                # 3.2.10 保存订单商品信息
+                OrderGoods.objects.create(
+                    order=orderinfo,
+                    sku=sku,
+                    count=count,
+                    price=sku.price,
+                )
+            else:
+                # 3.2.8 如果不充足 下单失败
+                return JsonResponse({'code': 400, 'errmsg': '库存不足'})
         # 4. 更新订单的总金额和总数量
+        orderinfo.save()
         # 5. 将redis 中选中的商品信息移除出去
+
         # 6.返回响应
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'order_id': order_id})
