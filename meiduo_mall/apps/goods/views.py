@@ -144,7 +144,7 @@ class SKUSearchView(SearchView):
                 'id': sku.object.id,
                 'name': sku.object.name,
                 'price': sku.object.price,
-                'default_image_url': sku.object.default_image.url,
+                'default_image_url': 'http://192.168.88.111:8888' + sku.object.default_image.url,
                 'searchkey': context.get('query'),
                 'page_size': context['page'].paginator.num_pages,
                 'count': context['page'].paginator.count
