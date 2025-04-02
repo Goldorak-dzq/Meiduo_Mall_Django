@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.contents',
     'apps.carts',
     'apps.orders',
+    'apps.payment',
     # CORS
     'corsheaders',
     # 全文检索
@@ -311,3 +312,10 @@ CRONJOBS = [
 from apscheduler.schedulers.background import BackgroundScheduler
 scheduler = BackgroundScheduler()
 scheduler.start()
+############################支付宝###############################
+ALIPAY_APPID = '2021000147672121'
+ALIPAY_DEBUG = True
+ALIPAY_URL = 'https://openapi.alipaydev.com/gateway.do'
+ALIPAY_RETURN_URL = 'http://www.meiduo.site:8080/pay_success.html'
+APP_PRIVATE_KEY_PATH = os.path.join(BASE_DIR, 'apps/payment/key/app_private_key.pem')
+ALIPAY_PUBLIC_KEY_PATH = os.path.join(BASE_DIR, 'apps/payment/key/alipay_public_key.pem')
