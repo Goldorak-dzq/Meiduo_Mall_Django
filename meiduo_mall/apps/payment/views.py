@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-from utils.views import LoginRequiredJsonMixin
 
 # Create your views here.
 """
@@ -32,6 +29,7 @@ from django.http import JsonResponse
 from apps.orders.models import OrderInfo
 from meiduo_mall import settings
 from alipay import AliPay, AliPayConfig
+from utils.views import LoginRequiredJsonMixin
 
 class PayUrlView(LoginRequiredJsonMixin, View):
     # afgjsp2242@sandbox.com
