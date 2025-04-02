@@ -150,8 +150,13 @@ class OrderCommitView(LoginRequiredJsonMixin, View):
         """
         Year month day Hour Minute Second
         """
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        shanghai_tz = ZoneInfo('Asia/Shanghai')
+        current_time = datetime.now(shanghai_tz)  # 获取上海当前时间
         # 生成订单编号：年月日时分秒 + 用户编号
-        order_id = timezone.localtime().strftime('%Y%m%d%H%M%S') + ('%09d' % user.id)
+        order_id = current_time.strftime('%Y%m%d%H%M%S%f') + ('%09d' % user.id)
+        # order_id = timezone.localtime().strftime('%Y%m%d%H%M%S%f') + ('%09d' % user.id)
         # 支付状态由支付方式决定
         if pay_method == OrderInfo.PAY_METHODS_ENUM['CASH']:  # 货到付款
             status = OrderInfo.ORDER_STATUS_ENUM['UNSEND']  # 待发货
@@ -197,9 +202,20 @@ class OrderCommitView(LoginRequiredJsonMixin, View):
             #  3.2.6 判断库存是否充足
                 if sku.stock > count:
                     #  3.2.7 如果充足 则库存减小 储量增加
-                    sku.stock -= count
-                    sku.sales += count
-                    sku.save()
+                    # sku.stock -= count
+                    # sku.sales += count
+                    # sku.save()
+                    # 旧库存参照数据
+                    old_stock = sku.stock
+                    # 更新数据时，比对一下记录对不对
+                    new_stock = sku.stock - count
+                    new_sales = sku.sales + count
+                    result = SKU.objects.filter(id=sku_id, stock=old_stock).update(stock=new_stock, sales=new_sales)
+                    # result == 0 表示没有更新
+                    if result == 0:
+                        # 暂时回滚
+                        transaction.savepoint_rollback(point)
+                        return JsonResponse({'code': 400, 'errmsg': '下单失败'})
                     # 3.2.9 累加总数量和总金额
                     orderinfo.total_count += count
                     orderinfo.total_amount += count
@@ -223,3 +239,21 @@ class OrderCommitView(LoginRequiredJsonMixin, View):
 
         # 6.返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'order_id': order_id})
+
+
+"""
+解决并发的超卖问题:
+1.队列
+2.加锁  
+    悲观锁:当查询某条记录时，即让数据库为该记录加锁，锁住记录后别人无法操作
+    悲观锁类似于我们在多线程资源竞争时添加的互斥锁，容易出现死锁现象，采用不多。
+    乐观锁:乐观锁并不是真实存在的锁，而是在更新的时候判断此时的库存是否是之前查询出的库存，
+    如果相同，表示没人修改，可以更新库存，否则表示别人抢过资源，不再执行库存更新
+
+MySQL数据库事务隔离级别主要有四种：
+    Serializable：串行化，一个事务一个事务的执行。  （用的不多）
+    Repeatable read：可重复读，无论其他事务是否修改并提交了数据，在这个事务中看到的数据值始终不受其他事务影响。
+    Read committed：读取已提交，其他事务提交了对数据的修改后，本事务就能读取到修改后的数据值。
+    Read uncommitted：读取未提交，其他事务只要修改了数据，即使未提交，本事务也能看到修改后的数据值。
+MySQL数据库默认使用可重复读（ Repeatable read）。
+"""
