@@ -25,6 +25,7 @@
 
 """
 from decimal import Decimal
+from time import sleep
 
 from django.http import JsonResponse
 from django.views import View
@@ -128,6 +129,7 @@ class OrderSettlementView(LoginRequiredJsonMixin, View):
 import json
 from apps.orders.models import OrderInfo, OrderGoods
 from django.db import transaction
+from time import sleep
 class OrderCommitView(LoginRequiredJsonMixin, View):
     def post(self, request):
         user = request.user
@@ -198,39 +200,43 @@ class OrderCommitView(LoginRequiredJsonMixin, View):
                 carts[int(sku_id)] = int(sku_id_counts[sku_id])
             #             3.2.5 根据选中商品的id进行查询
             for sku_id, count in carts.items():
-                sku = SKU.objects.get(id=sku_id)
-            #  3.2.6 判断库存是否充足
-                if sku.stock > count:
-                    #  3.2.7 如果充足 则库存减小 储量增加
-                    # sku.stock -= count
-                    # sku.sales += count
-                    # sku.save()
-                    # 旧库存参照数据
-                    old_stock = sku.stock
-                    # 更新数据时，比对一下记录对不对
-                    new_stock = sku.stock - count
-                    new_sales = sku.sales + count
-                    result = SKU.objects.filter(id=sku_id, stock=old_stock).update(stock=new_stock, sales=new_sales)
-                    # result == 0 表示没有更新
-                    if result == 0:
-                        # 暂时回滚
+                while True:
+                    sku = SKU.objects.get(id=sku_id)
+                    #  3.2.6 判断库存是否充足
+                    if sku.stock >= count:
+                        #  3.2.7 如果充足 则库存减小 储量增加
+                        # sku.stock -= count
+                        # sku.sales += count
+                        # sku.save()
+                        # 旧库存参照数据
+                        old_stock = sku.stock
+                        # 更新数据时，比对一下记录对不对
+                        new_stock = sku.stock - count
+                        new_sales = sku.sales + count
+                        result = SKU.objects.filter(id=sku_id, stock=old_stock).update(stock=new_stock, sales=new_sales)
+                        # result == 0 表示没有更新
+                        if result == 0:
+                            sleep(0.005)
+                            continue
+                            # 暂时回滚
+                            # transaction.savepoint_rollback(point)
+                            # return JsonResponse({'code': 400, 'errmsg': '下单失败'})
+                        # 3.2.9 累加总数量和总金额
+                        orderinfo.total_count += count
+                        orderinfo.total_amount += count
+                        # 3.2.10 保存订单商品信息
+                        OrderGoods.objects.create(
+                            order=orderinfo,
+                            sku=sku,
+                            count=count,
+                            price=sku.price,
+                        )
+                        break
+                    else:
+                        # 回滚点
+                        # 3.2.8 如果不充足 下单失败
                         transaction.savepoint_rollback(point)
-                        return JsonResponse({'code': 400, 'errmsg': '下单失败'})
-                    # 3.2.9 累加总数量和总金额
-                    orderinfo.total_count += count
-                    orderinfo.total_amount += count
-                    # 3.2.10 保存订单商品信息
-                    OrderGoods.objects.create(
-                        order=orderinfo,
-                        sku=sku,
-                        count=count,
-                        price=sku.price,
-                    )
-                else:
-                    # 回滚点
-                    # 3.2.8 如果不充足 下单失败
-                    transaction.savepoint_rollback(point)
-                    return JsonResponse({'code': 400, 'errmsg': '库存不足'})
+                        return JsonResponse({'code': 400, 'errmsg': '库存不足'})
             # 4. 更新订单的总金额和总数量
             orderinfo.save()
             # 事务提交点
