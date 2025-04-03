@@ -60,7 +60,7 @@ class PayUrlView(LoginRequiredJsonMixin, View):
         subject = "美多商城测试订单"
         # 电脑网站支付，需要跳转到：https://openapi.alipay.com/gateway.do? + order_string
         order_string = alipay.api_alipay_trade_page_pay(
-            out_trade_no="order_id",
+            out_trade_no=order_id,
             total_amount=str(order.total_amount),  # 一定要进行类型转换
             subject=subject,
             return_url=settings.ALIPAY_RETURN_URL,   # 支付成功后跳转页面
