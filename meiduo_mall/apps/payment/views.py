@@ -70,3 +70,61 @@ class PayUrlView(LoginRequiredJsonMixin, View):
         pay_url = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do?' + order_string
         # 7.返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'alipay_url': pay_url})
+
+
+"""
+前端: 
+    当用户支付完成之后，会跳转到指定商品页面
+    页面中的请求 查询字符串中有 支付相关信息
+    前端把这些数据提交给厚度按
+后端:
+    请求:  接受数据
+    业务逻辑:  查询字符串转换为字典 验证数据 数据没有问题获取支付宝交易流水号
+            改变订单状态
+    响应:  
+    路由:  PUT
+    步骤: 
+        1.接受数据
+        2.查询字符串转换为字典
+        3.验证数据
+        4.改变订单状态
+        5.返回响应
+"""
+from apps.payment.models import Payment
+class PaymentStatusView(LoginRequiredJsonMixin, View):
+    def put(self, request):
+        # 1.接受数据
+        data = request.GET
+        # 2.查询字符串转换为字典
+        data = data.dict()
+        # 3.验证数据
+        signature = data.pop('sign')
+        app_private_key_string = open(settings.APP_PRIVATE_KEY_PATH).read()
+        alipay_public_key_string = open(settings.ALIPAY_PUBLIC_KEY_PATH).read()
+        # 4.创建支付宝实例
+        alipay = AliPay(
+            appid=settings.ALIPAY_APPID,
+            app_notify_url=None,  # 默认回调 url
+            app_private_key_string=app_private_key_string,
+            # 支付宝的公钥，验证支付宝回传消息使用，不是你自己的公钥,
+            alipay_public_key_string=alipay_public_key_string,
+            sign_type="RSA2",  # RSA 或者 RSA2
+            debug=settings.ALIPAY_DEBUG,  # 默认 False
+            verbose=False,  # 输出调试数据
+            config=AliPayConfig(timeout=15)  # 可选，请求超时时间
+        )
+        success = alipay.verify(data, signature)
+        if success:
+            # 获取支付宝交易号
+            trade_no = data.get('trade_no')
+            order_id = data.get('out_trade_no')
+            Payment.objects.create(
+                trade_id=trade_no,
+                order_id=order_id,
+            )
+            # 4.改变订单状态
+            OrderInfo.objects.filter(order_id=order_id).update(status=OrderInfo.ORDER_STATUS_ENUM['UNSEND'])  # 未发货
+            return JsonResponse({'code': 0, 'errmsg': 'ok', 'trade_id': trade_no})
+        else:
+            # 5.返回响应
+            return JsonResponse({'code': 400, 'errmsg': '请到个人中心的订单中查询订单状态'})
