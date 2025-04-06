@@ -36,13 +36,18 @@ class PageNum(PageNumberPagination):
             ('pages', self.page.paginator.num_pages),  # 总共几页
             ('pagesize', self.page.paginator.per_page),  # 动态  一页多少条记录
         ]))
-
+from django.db.models import Q
 class UserAPIView(ListAPIView):
 
     def get_queryset(self):
         keyword = self.request.query_params.get('keyword')
         if keyword:
-            return User.objects.filter(username__contains=keyword)
+            # 使用Q对象实现OR逻辑查询
+            return User.objects.filter(
+                Q(username__contains=keyword) |
+                Q(mobile__contains=keyword) |
+                Q(email__contains=keyword)
+            )
         return User.objects.all()
     serializer_class = UserModelSerializer
     pagination_class = PageNum
