@@ -9,6 +9,8 @@
             1.2将对象列表转换为满足需求的字典列表 （序列化器）
         2.实现分页
         3.实现搜岁功能
+            3.1获取keyword
+            3.2根据keyword进行模糊查询
 
     新增用户  增加一个用户
 """
@@ -36,6 +38,14 @@ class PageNum(PageNumberPagination):
         ]))
 
 class UserAPIView(ListAPIView):
-    queryset = User.objects.all()
+
+    def get_queryset(self):
+        keyword = self.request.query_params.get('keyword')
+        if keyword:
+            return User.objects.filter(username__contains=keyword)
+        return User.objects.all()
     serializer_class = UserModelSerializer
     pagination_class = PageNum
+
+
+
