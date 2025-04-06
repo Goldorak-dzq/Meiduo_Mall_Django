@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import django
+from django.utils.encoding import smart_str
+django.utils.encoding.smart_text = smart_str
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,13 +50,18 @@ INSTALLED_APPS = [
     'apps.carts',
     'apps.orders',
     'apps.payment',
+    'apps.meiduo_admin',
     # CORS
     'corsheaders',
     # 全文检索
     'haystack',
     # 定时任务
     'django_crontab',
-
+    # 核心 REST 框架
+    'rest_framework',
+    # JWT 认证扩展（如果使用）
+    'rest_framework_jwt',
+    # 'rest_framework_simplejwt',  # 添加 simplejwt 应用
 ]
 
 MIDDLEWARE = [
@@ -243,7 +251,11 @@ CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1:8080',
     'http://localhost:8080',
     'http://www.meiduo.site:8080',
-    'http://www.meiduo.site:8000'
+    'http://www.meiduo.site:8000',
+
+    'http://127.0.0.1:8090',
+    'http://localhost:8090',
+    'http://www.meiduo.site:8090',
 )
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
 
@@ -319,3 +331,16 @@ ALIPAY_URL = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do'
 ALIPAY_RETURN_URL = 'http://www.meiduo.site:8080/pay_success.html'
 APP_PRIVATE_KEY_PATH = os.path.join(BASE_DIR, 'apps/payment/keys/app_private_key.pem')
 ALIPAY_PUBLIC_KEY_PATH = os.path.join(BASE_DIR, 'apps/payment/keys/alipay_public_key.pem')
+
+###################################################################
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+import datetime
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+}
