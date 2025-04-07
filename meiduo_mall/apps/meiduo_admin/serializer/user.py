@@ -7,4 +7,20 @@ class UserModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         # fields = '__all__'  # 偷懒
-        fields = ['id', 'username', 'email', 'mobile']
+        fields = ['id', 'username', 'email', 'mobile', 'password']
+
+        extra_kwargs = {
+            'username': {
+                'max_length': 20,
+                'min_length': 5
+            },
+            'password': {
+                'max_length': 20,
+                'min_length': 8,
+                'write_only': True
+
+            },
+        }
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)

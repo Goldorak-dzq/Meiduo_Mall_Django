@@ -37,7 +37,8 @@ class PageNum(PageNumberPagination):
             ('pagesize', self.page.paginator.per_page),  # 动态  一页多少条记录
         ]))
 from django.db.models import Q
-class UserAPIView(ListAPIView):
+from rest_framework.generics import ListCreateAPIView
+class UserAPIView(ListCreateAPIView):
 
     def get_queryset(self):
         keyword = self.request.query_params.get('keyword')
