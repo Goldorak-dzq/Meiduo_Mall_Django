@@ -57,3 +57,25 @@ class MeiduoObtainJSONWebToken(JSONWebTokenAPIView):
     serializer_class = MeiduoTokenSerializer
 
 meiduo_token = MeiduoObtainJSONWebToken.as_view()
+
+# 分页
+
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from collections import OrderedDict
+class PageNum(PageNumberPagination):
+    # 开启分页 设置默认每页多少条记录
+    page_size = 5
+    # 每页多少条记录的key，可以通过传递的参数传递
+    page_size_query_param = 'pagesize'
+    # 一页中最多有多少条记录
+    max_page_size = 20
+    def get_paginated_response(self, data):
+        # raise NotImplementedError('get_paginated_response() must be implemented.')
+        return Response(OrderedDict([
+            ('count', self.page.paginator.count),
+            ('lists', data),  # 结果列表
+            ('page', self.page.number),  # 第几页
+            ('pages', self.page.paginator.num_pages),  # 总共几页
+            ('pagesize', self.page.paginator.per_page),  # 动态  一页多少条记录
+        ]))

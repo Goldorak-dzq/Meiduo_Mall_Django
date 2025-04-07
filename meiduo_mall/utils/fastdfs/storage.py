@@ -29,7 +29,6 @@ class MyStorage(Storage):
 
     def _save(self, name, content):
         pass
-
     # def url(self, name):
     #     """
     #     返回name所指文件的绝对URL
@@ -39,6 +38,9 @@ class MyStorage(Storage):
     #     # return 'http://192.168.103.158:8888/' + name
     #     # return 'http://image.meiduo.site:8888/' + name
     #     return self.fdfs_base_url + name
-
+    # def exists(self, name):
+    #     # 判断图片是否存在
+    #     return False
     def url(self, name):
-        return f"{self.fdfs_base_url}{name}"
+        # return f"{self.fdfs_base_url}{name}"
+        return 'http://192.168.88.111:8888/' + name

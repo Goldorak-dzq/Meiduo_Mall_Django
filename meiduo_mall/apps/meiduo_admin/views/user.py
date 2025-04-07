@@ -17,27 +17,9 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from apps.meiduo_admin.serializer.user import UserModelSerializer
 from apps.users.models import User
-from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
-from rest_framework.response import Response
-from collections import OrderedDict
-class PageNum(PageNumberPagination):
-    # 开启分页 设置默认每页多少条记录
-    page_size = 5
-    # 每页多少条记录的key，可以通过传递的参数传递
-    page_size_query_param = 'pagesize'
-    # 一页中最多有多少条记录
-    max_page_size = 20
-    def get_paginated_response(self, data):
-        # raise NotImplementedError('get_paginated_response() must be implemented.')
-        return Response(OrderedDict([
-            ('count', self.page.paginator.count),
-            ('lists', data),  # 结果列表
-            ('page', self.page.number),  # 第几页
-            ('pages', self.page.paginator.num_pages),  # 总共几页
-            ('pagesize', self.page.paginator.per_page),  # 动态  一页多少条记录
-        ]))
 from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView
+from apps.meiduo_admin.utils import PageNum
 class UserAPIView(ListCreateAPIView):
 
     def get_queryset(self):

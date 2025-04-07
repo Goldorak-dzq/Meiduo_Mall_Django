@@ -5,7 +5,7 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.utils import meiduo_token
-from apps.meiduo_admin.views import home, user
+from apps.meiduo_admin.views import home, user, images
 
 urlpatterns = [
     path('authorizations/', meiduo_token),
@@ -17,5 +17,15 @@ urlpatterns = [
     path('statistical/month_increment/', home.MonthCountAPIView.as_view()),
 
     path('users/', user.UserAPIView.as_view()),
+    # 获取托新增中的sku展示
+    path('skus/simple/', images.ImageSKUAPIView.as_view()),
 
 ]
+
+from rest_framework.routers import DefaultRouter
+# 1.创建router实例
+router = DefaultRouter()
+# 2.设置路由
+router.register(r'skus/images', images.ImageModelViewSet, basename='images')
+# 3.添加到urlpatterns
+urlpatterns += router.urls
