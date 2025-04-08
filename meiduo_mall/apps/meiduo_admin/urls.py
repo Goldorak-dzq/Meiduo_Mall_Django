@@ -19,6 +19,9 @@ urlpatterns = [
     path('users/', user.UserAPIView.as_view()),
     # 获取托新增中的sku展示
     path('skus/simple/', images.ImageSKUAPIView.as_view()),
+    path('skus/categories/', sku.GoodsCategoryAPIView.as_view()),
+    path('goods/simple/', sku.SPUListAPIView.as_view()),
+    path('goods/<spu_id>/specs/', sku.SPUSpecAPIView.as_view()),
 
 ]
 
