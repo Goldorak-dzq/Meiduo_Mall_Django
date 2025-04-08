@@ -9,7 +9,7 @@ class SKUImageModelSerializer(serializers.ModelSerializer):
     # 返回图片关联的sku的id值
     sku = serializers.PrimaryKeyRelatedField(read_only=True)
     image = serializers.SerializerMethodField()  # 自定义字段
-    # image_file = serializers.ImageField(write_only=True)  # 新增可写字段
+    image_file = serializers.ImageField(write_only=True)  # 新增可写字段
 
     class Meta:
         model = SKUImage
@@ -32,7 +32,7 @@ class SKUImageModelSerializer(serializers.ModelSerializer):
         """
 
         # 0 单独获取图片二进制
-        image_data = validated_data.get('image').read()
+        image_data = validated_data.get('image_file').read()
         # 1. 创建Fdfs客户端
         from fdfs_client.client import Fdfs_client
         # client = Fdfs_client('utils/fastdfs/client.conf')

@@ -63,4 +63,5 @@ class ImageSKUAPIView(ListModelMixin, GenericAPIView):
     def get(self, request):
         return self.list(request)
 
+from rest_framework.generics import ListAPIView
 
