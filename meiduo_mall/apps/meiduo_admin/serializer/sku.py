@@ -45,7 +45,20 @@ class SKUModelSerializer(serializers.ModelSerializer):
                 transaction.savepoint_commit(save_point)
             # 返回sku
             return sku
-
+    def update(self, instance, validated_data):
+        # pop规格和规格选项数据
+        specs = validated_data.pop('specs')
+        # 更新sku数据
+        super().update(instance, validated_data)
+        # 更新规格和规格选项
+        # 1.
+        # for attr, value in validated_data.items():
+        #     setattr(instance, attr, value)
+        # instance.save()
+        # 2.
+        for spec in specs:
+            SKUSpecification.objects.filter(sku=instance, spec_id=spec.get('spec_id')).update(option_id=spec.get('option_id'))
+        return instance
 
 # 三级分类数据数据序列化器
 class GoodsCategoryModelSerializer(serializers.ModelSerializer):
