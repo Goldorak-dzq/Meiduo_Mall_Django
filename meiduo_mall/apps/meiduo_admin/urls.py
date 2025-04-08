@@ -17,11 +17,16 @@ urlpatterns = [
     path('statistical/month_increment/', home.MonthCountAPIView.as_view()),
 
     path('users/', user.UserAPIView.as_view()),
-    # 获取托新增中的sku展示
+    # 获取新增中的sku展示
     path('skus/simple/', images.ImageSKUAPIView.as_view()),
+
     path('skus/categories/', sku.GoodsCategoryAPIView.as_view()),
+    # sku获取spu数据
     path('goods/simple/', sku.SPUListAPIView.as_view()),
+    # sku获取spu规格和规格选项
     path('goods/<spu_id>/specs/', sku.SPUSpecAPIView.as_view()),
+    # 权限中获取ContentType 的数据
+    path('permission/content_types/', permissions.ContentTypeListAPIView.as_view()),
 
 ]
 

@@ -9,13 +9,31 @@
     # 权限
     from django.contrib.auth.models import Permission
 """
+from rest_framework.response import Response
 # 权限
 from rest_framework.viewsets import ModelViewSet
 from django.contrib.auth.models import Permission
 from apps.meiduo_admin.utils import PageNum
-from apps.meiduo_admin.serializer.permissions import PermissionModelSerializer
+from apps.meiduo_admin.serializer.permissions import PermissionModelSerializer, ContentTypeModelSerializer
+
 
 class PermissionModelViewSet(ModelViewSet):
     queryset = Permission.objects.all()
     serializer_class = PermissionModelSerializer
     pagination_class = PageNum
+
+# 权限的展示
+# ContentType权限类型, 期视就是子应用对应的模型
+from django.contrib.auth.models import ContentType
+from rest_framework.generics import ListAPIView
+class ContentTypeListAPIView(ListAPIView):
+    queryset = ContentType.objects.all()
+    serializer_class = ContentTypeModelSerializer
+    pagination_class = PageNum
+    def get(self, request):
+        # 查询全选分类
+        content = ContentType.objects.all()
+        # 返回结果
+        ser = ContentTypeModelSerializer(content, many=True)
+
+        return Response(ser.data)
