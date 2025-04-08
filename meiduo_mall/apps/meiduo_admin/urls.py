@@ -5,7 +5,7 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.utils import meiduo_token
-from apps.meiduo_admin.views import home, user, images, sku
+from apps.meiduo_admin.views import home, user, images, sku, permissions
 
 urlpatterns = [
     path('authorizations/', meiduo_token),
@@ -35,4 +35,15 @@ urlpatterns += router.urls
 
 #####################SKU#######################
 router.register(r'skus', sku.SKUModelViewSet, basename='skus')
+urlpatterns += router.urls
+
+
+####################权限#########################
+#创建router实例
+router = DefaultRouter()
+
+#注册路由
+router.register(r'permission/perms', permissions.PermissionModelViewSet, basename='perms')
+
+#将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls
