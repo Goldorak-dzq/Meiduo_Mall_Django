@@ -44,11 +44,13 @@ urlpatterns += router.urls
 
 
 ####################权限#########################
-#创建router实例
-router = DefaultRouter()
-
 #注册路由
 router.register(r'permission/perms', permissions.PermissionModelViewSet, basename='perms')
 
 #将router生成的路由追加到urlpatterns中
+urlpatterns += router.urls
+
+#################### 组 #########################
+router.register(r'permission/groups', permissions.GroupModelViewSet, basename='groups')
+
 urlpatterns += router.urls

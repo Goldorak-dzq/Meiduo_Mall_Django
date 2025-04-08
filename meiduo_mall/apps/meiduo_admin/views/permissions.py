@@ -3,7 +3,7 @@
 # @Time:2025/4/8 21:21
 """
     # 用户
-    from apps.users.moddel import User
+    from apps.users.model import User
     # 组
     from django.contrib.auth.models import Group
     # 权限
@@ -15,10 +15,11 @@ from rest_framework.viewsets import ModelViewSet
 from django.contrib.auth.models import Permission
 from apps.meiduo_admin.utils import PageNum
 from apps.meiduo_admin.serializer.permissions import PermissionModelSerializer, ContentTypeModelSerializer
+from apps.meiduo_admin.serializer.permissions import GroupModelSerializer
 
 
 class PermissionModelViewSet(ModelViewSet):
-    queryset = Permission.objects.all()
+    queryset = Permission.objects.all().order_by('id')
     serializer_class = PermissionModelSerializer
     pagination_class = PageNum
 
@@ -35,5 +36,12 @@ class ContentTypeListAPIView(ListAPIView):
         content = ContentType.objects.all()
         # 返回结果
         ser = ContentTypeModelSerializer(content, many=True)
-
         return Response(ser.data)
+
+
+####################### 组管理 #####################
+from django.contrib.auth.models import Group
+class GroupModelViewSet(ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupModelSerializer
+    pagination_class = PageNum
