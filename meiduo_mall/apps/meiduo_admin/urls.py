@@ -29,6 +29,11 @@ urlpatterns = [
     path('permission/content_types/', permissions.ContentTypeListAPIView.as_view()),
     # 组中获取权限列表数据
     path('permission/simple/', permissions.GroupPermissionListAPIView.as_view()),
+    # 管理员管理获取所有组
+    path('permission/groups/simple/', permissions.SimpleGroupListAPIView.as_view()),
+    # 保存管理员
+    # path('permission/admins/', permissions.AdminView.as_view()),
+
 
 ]
 
@@ -47,7 +52,7 @@ router.register(r'skus', sku.SKUModelViewSet, basename='skus')
 router.register(r'permission/perms', permissions.PermissionModelViewSet, basename='perms')
 #################### 组 #########################
 router.register(r'permission/groups', permissions.GroupModelViewSet, basename='groups')
-#################### 普通管理员 #########################
+#################### 获取普通管理员 #########################
 router.register(r'permission/admins', permissions.AdminUserModelViewSet, basename='admins')
 # 将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls

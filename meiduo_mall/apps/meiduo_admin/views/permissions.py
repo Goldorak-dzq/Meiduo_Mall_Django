@@ -18,6 +18,7 @@ from apps.meiduo_admin.serializer.user import UserModelSerializer
 from apps.meiduo_admin.utils import PageNum
 from apps.meiduo_admin.serializer.permissions import PermissionModelSerializer, ContentTypeModelSerializer
 from apps.meiduo_admin.serializer.permissions import GroupModelSerializer, AdminUserModelSerializer
+# from apps.meiduo_admin.serializer.permissions import AdminSaveSerializer
 
 
 class PermissionModelViewSet(ModelViewSet):
@@ -62,8 +63,20 @@ class GroupPermissionListAPIView(ListAPIView):
         ser = PermissionModelSerializer(pers, many=True)  # 使用以前定义的全选序列化器
         return Response(ser.data)
 
-#######################普通管理员管理 #####################
+#######################获取普通管理员 #####################
 class AdminUserModelViewSet(ModelViewSet):
     queryset = User.objects.filter(is_staff=True)
     serializer_class = AdminUserModelSerializer
     pagination_class = PageNum
+
+#######################管理员管理获取所有组 #####################
+class SimpleGroupListAPIView(ListAPIView):
+    queryset = Group.objects.all()
+    serializer_class = GroupModelSerializer
+    pagination_class = PageNum
+
+    def get(self, request):
+        pers = Group.objects.all()
+        ser = GroupModelSerializer(pers, many=True)
+        return Response(ser.data)
+
