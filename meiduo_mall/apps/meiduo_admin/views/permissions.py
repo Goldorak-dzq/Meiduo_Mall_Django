@@ -10,7 +10,7 @@
     from django.contrib.auth.models import Permission
 """
 from rest_framework.response import Response
-# 权限
+########################## 权限 ##############################
 from rest_framework.viewsets import ModelViewSet
 from django.contrib.auth.models import Permission
 from apps.meiduo_admin.utils import PageNum
@@ -23,7 +23,7 @@ class PermissionModelViewSet(ModelViewSet):
     serializer_class = PermissionModelSerializer
     pagination_class = PageNum
 
-# 权限的展示
+###################### 权限的展示 #########################
 # ContentType权限类型, 期视就是子应用对应的模型
 from django.contrib.auth.models import ContentType
 from rest_framework.generics import ListAPIView
@@ -45,3 +45,17 @@ class GroupModelViewSet(ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupModelSerializer
     pagination_class = PageNum
+
+####################### 组管理--权限列表展示 #####################
+from rest_framework.generics import ListAPIView
+from django.contrib.auth.models import Permission
+
+class GroupPermissionListAPIView(ListAPIView):
+    queryset = Permission.objects.all()
+    serializer_class = PermissionModelSerializer
+    pagination_class = PageNum
+
+    def get(self, request):
+        pers = Permission.objects.all()
+        ser = PermissionModelSerializer(pers, many=True)  # 使用以前定义的全选序列化器
+        return Response(ser.data)
