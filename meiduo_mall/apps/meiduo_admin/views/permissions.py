@@ -13,9 +13,11 @@ from rest_framework.response import Response
 ########################## 权限 ##############################
 from rest_framework.viewsets import ModelViewSet
 from django.contrib.auth.models import Permission
+from apps.users.models import User
+from apps.meiduo_admin.serializer.user import UserModelSerializer
 from apps.meiduo_admin.utils import PageNum
 from apps.meiduo_admin.serializer.permissions import PermissionModelSerializer, ContentTypeModelSerializer
-from apps.meiduo_admin.serializer.permissions import GroupModelSerializer
+from apps.meiduo_admin.serializer.permissions import GroupModelSerializer, AdminUserModelSerializer
 
 
 class PermissionModelViewSet(ModelViewSet):
@@ -59,3 +61,9 @@ class GroupPermissionListAPIView(ListAPIView):
         pers = Permission.objects.all()
         ser = PermissionModelSerializer(pers, many=True)  # 使用以前定义的全选序列化器
         return Response(ser.data)
+
+#######################普通管理员管理 #####################
+class AdminUserModelViewSet(ModelViewSet):
+    queryset = User.objects.filter(is_staff=True)
+    serializer_class = AdminUserModelSerializer
+    pagination_class = PageNum
