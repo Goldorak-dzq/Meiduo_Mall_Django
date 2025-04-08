@@ -283,7 +283,6 @@ EMAIL_FROM = '美多商城<dzq1780315381@163.com>'
 ############################加载自定义文件存储类###########################
 # 指定自定义的Django文件存储类
 DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.MyStorage'
-
 # FastDFS相关参数
 # FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
 FDFS_BASE_URL = 'http://192.168.88.111:8888/'

@@ -44,3 +44,4 @@ class MyStorage(Storage):
     def url(self, name):
         # return f"{self.fdfs_base_url}{name}"
         return 'http://192.168.88.111:8888/' + name
+        # return f"{settings.FDFS_BASE_URL}{name}"
