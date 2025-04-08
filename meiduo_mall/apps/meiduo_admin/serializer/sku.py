@@ -28,13 +28,23 @@ class SKUModelSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # 获取规格信息,并从validated_data数据中,删除规格信息数据
         specs_data = validated_data.pop('specs')
-        # 保存sku
-        sku = SKU.objects.create(**validated_data)
-        # 对规格信息进行遍历,来保存商品规格信息
-        for spec_data in specs_data:
-            SKUSpecification.objects.create(sku=sku, **spec_data)
-        # 返回sku
-        return sku
+        from django.db import transaction
+        with transaction.atomic():
+            # 事物开始点
+            save_point = transaction.savepoint()
+            try:
+                # 保存sku
+                sku = SKU.objects.create(**validated_data)
+                # 对规格信息进行遍历,来保存商品规格信息
+                for spec_data in specs_data:
+                    SKUSpecification.objects.create(sku=sku, **spec_data)
+            except Exception:
+                transaction.savepoint_rollback(save_point)
+            else:
+                # 事物提交
+                transaction.savepoint_commit(save_point)
+            # 返回sku
+            return sku
 
 
 # 三级分类数据数据序列化器
